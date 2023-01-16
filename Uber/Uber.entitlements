@@ -3,6 +3,8 @@
 <plist version="1.0">
 <dict>
 	<key>keychain-access-groups</key>
-	<array/>
+	<array>
+		<string>$(AppIdentifierPrefix)Glauber-Gustavo.Uber</string>
+	</array>
 </dict>
 </plist>

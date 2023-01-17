@@ -24,6 +24,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
     var driverName = ""
     var calledUber = false
     var onTheWayUber = false
+    var requests: DatabaseReference = DatabaseReference()
     
     let authentication = Auth.auth()
     let database = Database.database().reference()
@@ -75,7 +76,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
             self.userLocal = coordinates
             
             if self.onTheWayUber {
-                self.showDriverPassenger()
+                self.showDriverPassengerOnMap()
             }else {
                 let region = MKCoordinateRegion.init(center: coordinates, latitudinalMeters: 200, longitudinalMeters: 200)
                 map.setRegion(region, animated: true)
@@ -97,16 +98,17 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
         //Verifica se já tem uma requisiçāo de Uber
         if let userEmail = self.authentication.currentUser?.email {
             
-            let requests = self.database.child("requisicoes")
-            let requestsQuery = requests
+            self.requests = self.database.child("requisicoes")
+            let requestsQuery = self.requests
                 .queryOrdered(byChild: "email")
                 .queryEqual(toValue: userEmail)
             
             requestsQuery.observe(.childAdded) { snapshot in
                 if snapshot.value != nil {
-                    self.toggleButton(title: "Cancelar Uber",
-                                      isEnabled: true,
-                                      color: UIColor(displayP3Red: 0.831, green: 0.237, blue: 0.146, alpha: 1))
+                    self.btUberCall = .toggleButton(button: self.btUberCall,
+                                                    title: "Cancelar Uber",
+                                                    isEnabled: true,
+                                                    color: .colorButtonCancel)
                     self.calledUber = true
                 }
             }
@@ -120,14 +122,12 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
                 self.driverName = driverName
                 self.userName = userName
                 self.driverLocal = CLLocationCoordinate2D(latitude: latDriver, longitude: lonDriver)
-                self.showDriverPassenger()
+                self.showDriverPassengerOnMap()
             }
         }
     }
     
-    private func showDriverPassenger() {
-        
-        self.onTheWayUber = true
+    private func customizeButtonDriverDistanceWarning() {
         
         let driverLocation = CLLocation(latitude: self.driverLocal.latitude,
                                         longitude: self.driverLocal.longitude)
@@ -145,9 +145,17 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
         }else {
             buttonTitle = "Motorista \(kmDistance) KM de distancia"
         }
-        self.toggleButton(title: buttonTitle,
-                          isEnabled: false,
-                          color: UIColor(displayP3Red: 0.067, green: 0.576, blue: 0.604, alpha: 1))
+        self.btUberCall = .toggleButton(button: self.btUberCall,
+                                        title: buttonTitle,
+                                        isEnabled: false,
+                                        color: .colorButtonDriverDistanceWarning)
+    }
+    
+    private func showDriverPassengerOnMap() {
+        
+        self.onTheWayUber = true
+        
+        self.customizeButtonDriverDistanceWarning()
         
         map.removeAnnotations(map.annotations)
 
@@ -181,18 +189,20 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
     
     @IBAction func callDriver(_ sender: Any) {
                 
-        let request = self.database.child("requisicoes")
+        self.requests = self.database.child("requisicoes")
         if let userEmail = self.authentication.currentUser?.email {
             
             if self.calledUber {//Uber chamado
                 
                 //Alternar para o botāo de chamar
-                self.toggleButton(title: "Chamar Uber",
-                                  isEnabled: true,
-                                  color: UIColor(displayP3Red: 0.067, green: 0.576, blue: 0.604, alpha: 1))
+                self.btUberCall = .toggleButton(button: self.btUberCall,
+                                                title: "Chamar Uber",
+                                                isEnabled: true,
+                                                color: .colorButtonUberCall)
                 self.calledUber = false
+                
                 //Remover requisiçāo
-                request.queryOrdered(byChild: "email")
+                self.requests.queryOrdered(byChild: "email")
                        .queryEqual(toValue: userEmail)
                        .observeSingleEvent(of: .childAdded) { snapshot in
                     
@@ -201,13 +211,13 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
                 }
                 
             } else {//Uber nāo foi chamado
-                self.getDestinationAddressToRequest()
+                self.loadDestinationAddress()
                 
             }
         }
     }
     
-    private func getDestinationAddressToRequest() {
+    private func loadDestinationAddress() {
         
         if let destinationAddress = self.txfDestinationAddress.text,
                                     !destinationAddress.isEmpty {
@@ -230,14 +240,14 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
                         if let lonDestination = localData.location?.coordinate.longitude {
                             self.lonDestination = lonDestination
                         }
-                        self.confirmDestinationAddressAlert(completionAddress: completionAddress)
+                        self.addressAlert(completionAddress)
                     }
                 }
             }
         }
     }
     
-    private func confirmDestinationAddressAlert(completionAddress: String) {
+    private func addressAlert(_ completionAddress: String) {
         
         let alert = UIAlertController(title: "Confirme seu endereço de destino!",
                                       message: completionAddress,
@@ -246,7 +256,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
                                    style: .cancel)
         let confirm = UIAlertAction(title: "Confirme",
                                     style: .default) { alertAction in
-            self.requestSave()
+            self.loadRequestData()
         }
         
         alert.addAction(cancel)
@@ -255,7 +265,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
         self.present(alert, animated: true)
     }
         
-    private func requestSave() {
+    private func loadRequestData() {
                 
         guard let userEmail = self.authentication.currentUser?.email else { return }
         guard let userID = self.authentication.currentUser?.uid else { return }
@@ -269,9 +279,10 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
             if let userName = data?["nome"] as? String {
                 
                 //Alternar para o botāo de cancelar
-                self.toggleButton(title: "Cancelar Uber",
-                                  isEnabled: true,
-                                  color: UIColor(displayP3Red: 0.831, green: 0.237, blue: 0.146, alpha: 1))
+                self.btUberCall = .toggleButton(button: self.btUberCall,
+                                                title: "Cancelar Uber",
+                                                isEnabled: true,
+                                                color: .colorButtonCancel)
                 self.calledUber = true
                 //Salvar dados da requisiçāo
                 let userData = [
@@ -290,14 +301,5 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
                 print("Cadastro feito sem o nome do usuário! Por favor refaça!")
             }
         }
-    }
-    
-    private func toggleButton(title: String,
-                              isEnabled: Bool,
-                              color: UIColor) {
-        
-        self.btUberCall.setTitle(title, for: .normal)
-        self.btUberCall.isEnabled = isEnabled
-        self.btUberCall.backgroundColor = color
     }
 }

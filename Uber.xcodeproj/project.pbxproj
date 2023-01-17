@@ -22,6 +22,8 @@
 		5665A24726D04C3400BCA7CD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5665A24526D04C3400BCA7CD /* LaunchScreen.storyboard */; };
 		5665A24F26D0521B00BCA7CD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5665A24E26D0521B00BCA7CD /* GoogleService-Info.plist */; };
 		5680251826D2A886002E6F1C /* PassengerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5680251726D2A886002E6F1C /* PassengerViewController.swift */; };
+		56ABA68A2975A35A0074DE30 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56ABA6892975A35A0074DE30 /* Extensions.swift */; };
+		56ABA68C2975AEE60074DE30 /* Enum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56ABA68B2975AEE60074DE30 /* Enum.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +42,8 @@
 		5665A24E26D0521B00BCA7CD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5680251726D2A886002E6F1C /* PassengerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassengerViewController.swift; sourceTree = "<group>"; };
 		5680251926D34F1A002E6F1C /* Uber.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Uber.entitlements; sourceTree = "<group>"; };
+		56ABA6892975A35A0074DE30 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		56ABA68B2975AEE60074DE30 /* Enum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enum.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,10 +107,20 @@
 				5665A24326D04C3400BCA7CD /* Assets.xcassets */,
 				5665A24826D04C3400BCA7CD /* Info.plist */,
 				5665A24E26D0521B00BCA7CD /* GoogleService-Info.plist */,
+				56ABA68529759DE40074DE30 /* Custom */,
 				5660429626D1BE02001256AB /* Controllers */,
 				5660429826D1BE42001256AB /* Views */,
 			);
 			path = Uber;
+			sourceTree = "<group>";
+		};
+		56ABA68529759DE40074DE30 /* Custom */ = {
+			isa = PBXGroup;
+			children = (
+				56ABA6892975A35A0074DE30 /* Extensions.swift */,
+				56ABA68B2975AEE60074DE30 /* Enum.swift */,
+			);
+			path = Custom;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -192,7 +206,9 @@
 				5660429A26D1BED8001256AB /* EnterViewController.swift in Sources */,
 				5665A23B26D04C3100BCA7CD /* AppDelegate.swift in Sources */,
 				5665697A26D413C1002B5501 /* DriverTableViewController.swift in Sources */,
+				56ABA68C2975AEE60074DE30 /* Enum.swift in Sources */,
 				5680251826D2A886002E6F1C /* PassengerViewController.swift in Sources */,
+				56ABA68A2975A35A0074DE30 /* Extensions.swift in Sources */,
 				5665A23D26D04C3100BCA7CD /* SceneDelegate.swift in Sources */,
 				5660429C26D1BF14001256AB /* RegistrationViewController.swift in Sources */,
 				5665697C26D44770002B5501 /* ConfirmRequestViewController.swift in Sources */,

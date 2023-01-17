@@ -12,16 +12,22 @@ import MapKit
 
 class DriverTableViewController: UITableViewController, CLLocationManagerDelegate {
     
-    var requestsList: [DataSnapshot] = []
     var locationManager = CLLocationManager()
     var driverLocal = CLLocationCoordinate2D()
     var requests: DatabaseReference = DatabaseReference()
     var driverName = ""
     var driverEmail = ""
+    var userData: [String: Any] = [:]
     
     let database = Database.database().reference()
     let authentication = Auth.auth()
 
+    var requestsList: [DataSnapshot] = [] {
+        didSet {
+            self.tableView.reloadData()
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -32,10 +38,7 @@ class DriverTableViewController: UITableViewController, CLLocationManagerDelegat
         locationManager.startUpdatingLocation()
         
         //Recuperar nome do motorista
-        self.getDriverData()
-                
-        //Limpa requisição, caso o usuario cancele
-        self.cancelRequest()
+        self.driverLoadData()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -43,14 +46,17 @@ class DriverTableViewController: UITableViewController, CLLocationManagerDelegat
         
         self.requests = self.database.child("requisicoes")
         
-        self.configRequest()
+        //Limpa requisição, caso o usuario cancele
+        self.cancelData()
+        
+        self.loadData()
     }
         
     //---------------------------------------------------------
     //------------ MARK: - Custom Methods ---------------------
     //---------------------------------------------------------
     
-    private func cancelRequest() {
+    private func cancelData() {
         self.requests.observe(.childRemoved) { snapshot in
             
             var index = 0
@@ -64,13 +70,12 @@ class DriverTableViewController: UITableViewController, CLLocationManagerDelegat
         }
     }
     
-    private func configRequest() {
+    private func loadData() {
         
         self.requestsList = []
         
         self.requests.observe(.childAdded) { snapshot in
             self.requestsList.append(snapshot)
-            self.tableView.reloadData()
         }
     }
     
@@ -91,7 +96,7 @@ class DriverTableViewController: UITableViewController, CLLocationManagerDelegat
         }
     }
     
-    private func getDriverData() {
+    private func driverLoadData() {
         
         guard let driverID = self.authentication.currentUser?.uid else { return }
         guard let driverEmail = self.authentication.currentUser?.email else { return }
@@ -152,7 +157,7 @@ class DriverTableViewController: UITableViewController, CLLocationManagerDelegat
         
         let snapshot = self.requestsList[indexPath.row]
         if let userData = snapshot.value as? [String: Any] {
-            
+            self.userData = userData
             if let passengerLat = userData["latitude"] as? Double,
                let passengerLon = userData["longitude"] as? Double {
                 
@@ -169,12 +174,12 @@ class DriverTableViewController: UITableViewController, CLLocationManagerDelegat
                 var requestDriver = ""
                 if let recoverDriverEmail = userData["emailMotorista"] as? String {
                     if self.driverEmail == recoverDriverEmail {
-                        requestDriver = "{EM ANDAMENTO}"
+                        requestDriver = " - {EM ANDAMENTO}"
                     }
                 }
                 
                 if let userName = userData["nome"] as? String {
-                    cell.textLabel?.text = "\(userName)" + " - \(requestDriver)"
+                    cell.textLabel?.text = "\(userName)" + "\(requestDriver)"
                 }
                 
                 if mDistance < 1000 {

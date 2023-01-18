@@ -78,19 +78,26 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
             if self.onTheWayUber {
                 self.showDriverPassengerOnMap()
             }else {
-                let region = MKCoordinateRegion.init(center: coordinates, latitudinalMeters: 200, longitudinalMeters: 200)
-                map.setRegion(region, animated: true)
-                
-                //Remove anotações antes de criar
-                map.removeAnnotations(map.annotations)
-                
-                //Cria uma anotaçāo para o local do usuário
-                let userAnnotation = MKPointAnnotation()
-                userAnnotation.coordinate = coordinates
-                userAnnotation.title = "Seu Local"
-                map.addAnnotation(userAnnotation)
+                self.mapConfig()
             }
         }
+    }
+    
+    private func mapConfig() {
+        
+        let region = MKCoordinateRegion.init(center: self.userLocal,
+                                             latitudinalMeters: 200,
+                                             longitudinalMeters: 200)
+        map.setRegion(region, animated: true)
+        
+        //Remove anotações antes de criar
+        map.removeAnnotations(map.annotations)
+        
+        //Cria uma anotaçāo para o local do usuário
+        let userAnnotation = MKPointAnnotation()
+        userAnnotation.coordinate = self.userLocal
+        userAnnotation.title = "Meu Local"
+        map.addAnnotation(userAnnotation)
     }
     
     private func loadData() {
@@ -127,7 +134,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
         }
     }
     
-    private func customizeButtonDriverDistanceWarning() {
+    private func customizeButtonCallDriver() {
         
         let driverLocation = CLLocation(latitude: self.driverLocal.latitude,
                                         longitude: self.driverLocal.longitude)
@@ -140,8 +147,10 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
         let kmDistance = round(mDistance / 1000)
         
         var buttonTitle = ""
-        if distance < 1000 {
+        if distance < 1000, distance != 0 {
             buttonTitle = "Motorista \(mDistance) M de distancia"
+        }else if distance == 0 {
+            buttonTitle = "Seu motorista chegou"
         }else {
             buttonTitle = "Motorista \(kmDistance) KM de distancia"
         }
@@ -155,7 +164,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
         
         self.onTheWayUber = true
         
-        self.customizeButtonDriverDistanceWarning()
+        self.customizeButtonCallDriver()
         
         map.removeAnnotations(map.annotations)
 
@@ -194,26 +203,32 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
             
             if self.calledUber {//Uber chamado
                 
-                //Alternar para o botāo de chamar
-                self.btUberCall = .toggleButton(button: self.btUberCall,
-                                                title: "Chamar Uber",
-                                                isEnabled: true,
-                                                color: .colorButtonUberCall)
-                self.calledUber = false
-                
-                //Remover requisiçāo
-                self.requests.queryOrdered(byChild: "email")
-                       .queryEqual(toValue: userEmail)
-                       .observeSingleEvent(of: .childAdded) { snapshot in
-                    
-                    snapshot.ref.removeValue()
-                    
-                }
+                self.cancelRequest(userEmail: userEmail)
                 
             } else {//Uber nāo foi chamado
                 self.loadDestinationAddress()
                 
             }
+        }
+    }
+    
+    private func cancelRequest(userEmail: String) {
+        
+        Util.userCanceledRequest(true)
+        //Alternar para o botāo de chamar
+        self.btUberCall = .toggleButton(button: self.btUberCall,
+                                        title: "Chamar Uber",
+                                        isEnabled: true,
+                                        color: .colorButtonUberCall)
+        self.calledUber = false
+        
+        //Remover requisiçāo
+        self.requests.queryOrdered(byChild: "email")
+               .queryEqual(toValue: userEmail)
+               .observeSingleEvent(of: .childAdded) { snapshot in
+            
+            snapshot.ref.removeValue()
+            
         }
     }
     

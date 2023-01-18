@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		562FBE632977B66E000AC0ED /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562FBE622977B66E000AC0ED /* Util.swift */; };
 		565D78F2297277110041CB09 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 565D78F1297277110041CB09 /* FirebaseAnalytics */; };
 		565D78F4297277110041CB09 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 565D78F3297277110041CB09 /* FirebaseAuth */; };
 		565D78F6297277110041CB09 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 565D78F5297277110041CB09 /* FirebaseDatabase */; };
@@ -27,6 +28,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		562FBE622977B66E000AC0ED /* Util.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		5660429926D1BED8001256AB /* EnterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnterViewController.swift; sourceTree = "<group>"; };
 		5660429B26D1BF14001256AB /* RegistrationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationViewController.swift; sourceTree = "<group>"; };
 		5665697926D413C1002B5501 /* DriverTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverTableViewController.swift; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 			children = (
 				56ABA6892975A35A0074DE30 /* Extensions.swift */,
 				56ABA68B2975AEE60074DE30 /* Enum.swift */,
+				562FBE622977B66E000AC0ED /* Util.swift */,
 			);
 			path = Custom;
 			sourceTree = "<group>";
@@ -202,6 +205,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				562FBE632977B66E000AC0ED /* Util.swift in Sources */,
 				5665A23F26D04C3100BCA7CD /* ViewController.swift in Sources */,
 				5660429A26D1BED8001256AB /* EnterViewController.swift in Sources */,
 				5665A23B26D04C3100BCA7CD /* AppDelegate.swift in Sources */,

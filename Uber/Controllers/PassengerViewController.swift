@@ -115,7 +115,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
                     self.btUberCall = .toggleButton(button: self.btUberCall,
                                                     title: "Cancelar Uber",
                                                     isEnabled: true,
-                                                    color: .colorButtonCancel)
+                                                    color: .colorRed)
                     self.calledUber = true
                 }
             }
@@ -157,7 +157,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
         self.btUberCall = .toggleButton(button: self.btUberCall,
                                         title: buttonTitle,
                                         isEnabled: false,
-                                        color: .colorButtonDriverDistanceWarning)
+                                        color: .colorGreen)
     }
     
     private func showDriverPassengerOnMap() {
@@ -214,12 +214,11 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
     
     private func cancelRequest(userEmail: String) {
         
-        Util.userCanceledRequest(true)
         //Alternar para o botāo de chamar
         self.btUberCall = .toggleButton(button: self.btUberCall,
                                         title: "Chamar Uber",
                                         isEnabled: true,
-                                        color: .colorButtonUberCall)
+                                        color: .colorGreen)
         self.calledUber = false
         
         //Remover requisiçāo
@@ -297,7 +296,7 @@ class PassengerViewController: UIViewController, CLLocationManagerDelegate {
                 self.btUberCall = .toggleButton(button: self.btUberCall,
                                                 title: "Cancelar Uber",
                                                 isEnabled: true,
-                                                color: .colorButtonCancel)
+                                                color: .colorRed)
                 self.calledUber = true
                 //Salvar dados da requisiçāo
                 let userData = [

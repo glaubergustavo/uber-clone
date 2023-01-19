@@ -12,5 +12,6 @@ enum RaceStatus: String {
     case getPassenger = "pegar_passageiro"
     case startTrip = "iniciar_viagem"
     case onTrip = "em_viagem"
-    case finalizeRace = "finalizar_corrida"
+    case cancelTrip = "cancelar_viagem"
+    case finalizeTrip = "finalizar_viagem"
 }

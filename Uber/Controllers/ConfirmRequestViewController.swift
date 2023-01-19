@@ -19,6 +19,8 @@ class ConfirmRequestViewController: UIViewController, CLLocationManagerDelegate 
     var passengerEmail = ""
     var driverName = ""
     var driverEmail = ""
+    var tripPrice = 0.0
+    var travelledDistance = 0.0
     var passengerLocal = CLLocationCoordinate2D()
     var driverLocal = CLLocationCoordinate2D()
     var destinationLocal = CLLocationCoordinate2D()
@@ -58,52 +60,75 @@ class ConfirmRequestViewController: UIViewController, CLLocationManagerDelegate 
         self.requests = self.database.child("requisicoes")
         let queryRequest = self.requests.queryOrdered(byChild: "email")
             .queryEqual(toValue: self.passengerEmail)
-        
+
         queryRequest.observeSingleEvent(of: .childChanged) { snapshot in
-            self.driverReloadData()
+            self.reloadData()
         }
     }
     
-    private func setOnTripStatus() {
+    private func configOnTripStatus() {
         self.status = .onTrip
         self.btnRaceAccept = .toggleButton(button: self.btnRaceAccept,
                                            title: "Em Viagem",
                                            isEnabled: false,
-                                           color: .colorButtonOnTrip)
+                                           color: .colorGray)
     }
     
-    private func setStarTripStatus() {
+    private func configStarTripStatus() {
         self.status = .startTrip
         self.btnRaceAccept = .toggleButton(button: self.btnRaceAccept,
                                            title: "Iniciar Viagem",
                                            isEnabled: true,
-                                           color: .colorButtonStarTrip)
+                                           color: .colorGreen)
     }
         
-    private func setGetPassengerStatus() {
+    private func configGetPassengerStatus() {
         self.status = .getPassenger
         self.btnRaceAccept = .toggleButton(button: self.btnRaceAccept,
                                            title: "A caminho do passageiro",
                                            isEnabled: false,
-                                           color: .colorButtonGetPassenger)
+                                           color: .colorGray)
     }
     
-    private func setfinalizeRaceStatus() {
-        self.status = .finalizeRace
+    private func configCancelTripStatus() {
+        self.status = .cancelTrip
         self.btnRaceAccept = .toggleButton(button: self.btnRaceAccept,
                                            title: "Encerrar Corrida",
                                            isEnabled: true,
-                                           color: .colorButtonCancel)
+                                           color: .colorRed)
     }
     
-    private func driverReloadData() {
+    private func configFinalizeTripStatus() {
+        self.status = .finalizeTrip
+        self.btnRaceAccept = .toggleButton(button: self.btnRaceAccept,
+                                           title: "Viagem finalizada - R$ \(self.tripPrice)",
+                                           isEnabled: true,
+                                           color: .colorGray)
+    }
+    
+    private func getTripPrice() {
+        
+        let request = database.child("preco")
+        let queryRequest = request.queryEqual(toValue: "KM")
+        
+            queryRequest.observe(.value) { snapshot in
+
+            guard let data = snapshot.value as? NSDictionary else { return }
+            guard let priceKM = data["KM"] as? Double else { return }
+
+            let tripPrice = self.travelledDistance * priceKM
+            self.tripPrice = tripPrice
+        }
+    }
+    
+    private func reloadData() {
         
         //Atualiza localizacao do motorista no Firebase
         if !self.passengerEmail.isEmpty {
             
             self.requests = self.database.child("requisicoes")
             let queryRequest = self.requests.queryOrdered(byChild: "email")
-                                            .queryEqual(toValue: self.passengerEmail)
+                .queryEqual(toValue: self.passengerEmail)
             
             queryRequest.observeSingleEvent(of: .childAdded) { snapshot in
                 
@@ -111,62 +136,63 @@ class ConfirmRequestViewController: UIViewController, CLLocationManagerDelegate 
                 if let recoveredStatus = data["status"] as? String {
                     
                     if let latDestination = data["destinoLatitude"] as? Double,
-                    let lonDestination = data["destinoLongitude"] as? Double {
-                        self.destinationLocal = CLLocationCoordinate2D(latitude: latDestination, longitude: lonDestination)
+                       let lonDestination = data["destinoLongitude"] as? Double {
+                        self.destinationLocal = CLLocationCoordinate2D(latitude: latDestination,
+                                                                       longitude: lonDestination)
                     }
                     
                     if recoveredStatus == RaceStatus.getPassenger.rawValue {
                         
-                        if (self.calculatedDistance(of: self.driverLocal,
-                                                    to: self.passengerLocal)).isEqual(to: 0.0) {
-                            self.setStarTripStatus()
+                        let distanceDriverPassenger = self.calculatedDistance(of: self.driverLocal,
+                                                                              to: self.passengerLocal)
+                        if distanceDriverPassenger.isEqual(to: 0.0) {
+                            self.configStarTripStatus()
                         }
                         
                         self.showPassengerDriverOnMap(startDestination: self.driverLocal,
-                                                 endDestination: self.passengerLocal,
-                                                 starDestinationText: "Meu local",
-                                                 endDestinationText: self.passengerName)
+                                                      endDestination: self.passengerLocal,
+                                                      starDestinationText: "Meu local",
+                                                      endDestinationText: self.passengerName)
                         
                     }else if recoveredStatus == RaceStatus.startTrip.rawValue {
                         
                         self.showPassengerDriverOnMap(startDestination: self.passengerLocal,
-                                                 endDestination: self.destinationLocal,
-                                                 starDestinationText: self.driverName,
-                                                 endDestinationText: "Destino de \(self.passengerName)")
+                                                      endDestination: self.destinationLocal,
+                                                      starDestinationText: self.driverName,
+                                                      endDestinationText: "Destino de \(self.passengerName)")
                         
                         
                     }else if recoveredStatus == RaceStatus.onTrip.rawValue {
                         
-                        if self.calculatedDistance(of: self.driverLocal,
-                                                   to: self.destinationLocal) == 0.0 {
-                            self.setfinalizeRaceStatus()
+                        let distanceDriverDestinationPassenger = self.calculatedDistance(of: self.driverLocal,
+                                                                                         to: self.destinationLocal)
+                        self.travelledDistance = self.calculatedDistance(of: self.passengerLocal,
+                                                                         to: self.destinationLocal)
+                        self.getTripPrice()
+                        
+                        if distanceDriverDestinationPassenger.isEqual(to: 0.0) {
+                            self.configCancelTripStatus()
                         }
+                        
                         self.showPassengerDriverOnMap(startDestination: self.destinationLocal,
-                                                 endDestination: self.driverLocal,
-                                                 starDestinationText: "Destino de \(self.passengerName)",
-                                                 endDestinationText: self.driverName)
+                                                      endDestination: self.driverLocal,
+                                                      starDestinationText: "Destino de \(self.passengerName)",
+                                                      endDestinationText: self.driverName)
                         
-                    }else if recoveredStatus == RaceStatus.finalizeRace.rawValue {
-                        
-                        Util.userCanceledRequest(false)
-                        //Remover requisiçāo
-                        self.requests.queryOrdered(byChild: "email")
-                            .queryEqual(toValue: self.passengerEmail)
-                               .observeSingleEvent(of: .childAdded) { snapshot in
-                            
-                            snapshot.ref.removeValue()
-                                   self.status = .onRequest
-                        }
                     }
                     
-                    if self.status != .onRequest {
-                        let driverData = [
-                            "motoristaLatitude" : self.driverLocal.latitude,
-                            "motoristaLongitude" : self.driverLocal.longitude,
-                            "status" : self.status.rawValue
-                        ]
-                        snapshot.ref.updateChildValues(driverData)
+                    var driverData = [
+                        "motoristaLatitude" : self.driverLocal.latitude,
+                        "motoristaLongitude" : self.driverLocal.longitude,
+                        "status" : self.status.rawValue,
+                    ]
+                    
+                    if self.status == .cancelTrip {
+                        driverData.updateValue(self.tripPrice, forKey: "precoViagem")
+                        driverData.updateValue(self.travelledDistance, forKey: "distanciaPercorrida")
                     }
+                    
+                    snapshot.ref.updateChildValues(driverData)
                 }
             }
         }
@@ -312,18 +338,16 @@ class ConfirmRequestViewController: UIViewController, CLLocationManagerDelegate 
         
         if self.status == .onRequest {
             self.reloadRaceData()
-            self.setGetPassengerStatus()
+            self.configGetPassengerStatus()
             self.showWayToPassengerOnMap()
         }else if self.status == .startTrip {
-            self.setOnTripStatus()
-            self.driverReloadData()
+            self.configOnTripStatus()
+            self.reloadData()
             self.showWayToDestinationPassengerOnMap()
-        }else if self.status == .startTrip {
-            self.setOnTripStatus()
-        }else if self.status == .finalizeRace {
+        }else if self.status == .cancelTrip {
             self.mapConfig(local: self.driverLocal, localText: "Meu local")
-            self.driverReloadData()
-            self.dismiss()
+            self.configFinalizeTripStatus()
+            self.reloadData()
         }
     }
     
@@ -349,6 +373,6 @@ class ConfirmRequestViewController: UIViewController, CLLocationManagerDelegate 
         guard let coordinates = manager.location?.coordinate else { return }
                 
         self.driverLocal = coordinates
-        self.driverReloadData()
+        self.reloadData()
     }
 }

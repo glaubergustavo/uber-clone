@@ -172,6 +172,11 @@ class DriverTableViewController: UITableViewController, CLLocationManagerDelegat
                 if let recoverDriverEmail = userData["emailMotorista"] as? String {
                     if self.driverEmail == recoverDriverEmail {
                         requestDriver = " - {EM ANDAMENTO}"
+                        if let status = userData["status"] as? String {
+                            if status == RaceStatus.finalizeTrip.rawValue {
+                                requestDriver = " - {VIAGEM FINALIZADA}"
+                            }
+                        }
                     }
                 }
                 
